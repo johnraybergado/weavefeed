@@ -1,0 +1,8 @@
+conda create -n weavefeed python=3.14
+conda install psycopg2
+pip install pydantic
+pip install pydantic-settings
+pip install feedparser
+pip install google-genai
+pip install yfinance
+pip install pytest
