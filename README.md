@@ -8,6 +8,10 @@ Weavefeed is a prototype agentic system that generates and continuously evaluate
 
 The project is intended as an R&D prototype for exploring agentic AI workflows, LLM-assisted financial reasoning, and continuous evaluation of macroeconomic hypotheses.
 
+**Research Prototype Disclaimer**
+
+Weavefeed is an experimental research project exploring agentic AI workflows and macroeconomic market hypothesis generation. It is not investment advice and should not be used for live trading decisions.
+
 ---
 
 # Architecture
