@@ -44,3 +44,6 @@ dist/
 
 # Draw.io temp files
 *.drawio.bkp
+
+dev_utils/
+prod_src/

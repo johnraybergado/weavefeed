@@ -1,6 +1,7 @@
 """Generate macroeconomic analysis via an LLM API"""
 import logging
 from typing import Optional
+from datetime import date
 from google import genai
 from google.genai import types
 from google.genai.errors import APIError
@@ -51,14 +52,20 @@ def analyze_news(articles: list[NewsArticle]) -> Optional[DailyPrediction]:
 
         # The new google-genai SDK natively populates response.parsed when response_schema is provided
         if response.parsed:
-            return response.parsed
-
+            prediction = response.parsed
         # Fallback parsing strategy in case of version-specific SDK variances
-        if response.text:
+        elif response.text:
             logger.debug("Falling back to explicit Pydantic JSON parsing execution.")
-            return DailyPrediction.model_validate_json(response.text)
+            prediction = DailyPrediction.model_validate_json(response.text)
+        else:
+            raise ValueError("Gemini API generated an empty response payload.")
 
-        raise ValueError("Gemini API generated an empty response payload.")
+        # enforce daily horizon prediction is the same date 
+        # as when the prediciton workflow is ran
+        if prediction.horizon == "DAY":
+            prediction.prediction_for = date.today()
+
+        return prediction
 
     except APIError as api_err:
         logger.error(f"Google GenAI SDK Network/API execution fault: {api_err}", exc_info=True)

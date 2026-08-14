@@ -12,6 +12,7 @@ Does NOT perform evaluation.
 """
 
 import logging
+from datetime import date
 
 from collector import collect_news
 from database import (
@@ -31,13 +32,7 @@ def main():
     # News Collection
     # --------------------------------------------------
 
-    articles, inserted, removed = collect_news()
-
-    logger.info(f"Collected{len(articles)} articles")
-
-    inserted = store_articles(articles)
-
-    logger.info(f"Inserted {inserted} new articles")
+    _, __, ___ = collect_news()
 
     # --------------------------------------------------
     # Analysis
