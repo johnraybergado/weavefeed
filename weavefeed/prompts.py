@@ -124,14 +124,15 @@ def generate_analysis_prompt(articles: list[NewsArticle]) -> str:
     prompt_lines = [
         f"CURRENT EVALUATION TIMESTAMP: {current_time_str}\n",
         "INSTRUCTIONS FOR PROCESSING:",
-        "1. Identify the structural macroeconomic developments fromt he ingested corpus.",
+        "1. Identify the structural macroeconomic developments from the ingested corpus.",
         "2. Apply the evidence weighting hierarchy to prioritize high-impact macro drivers.",
         "3. Assess whether evidence is aligned, mixed, or conflicting.",
         "4. Determine directional probabilities based on the weight of evidence.",
         "5. Set confidence based on evidence quality, consistency, and completeness.",
         "6. Write reasoning that explains WHY probabilities were chosen, connecting drivers to conclusions.",
         "7. Identify 2-4 specific, observable invalidation conditions.",
-        "8. Filter out noise or technical-chatter articles, listing their hashes in 'ignored_articles'.\n"
+        "8. Filter out noise or technical-chatter articles, listing their hashes in 'ignored_articles'.",
+        "9. For horizon='DAY' predictions, prediction_for should be today's trading date.\n"
         
         f"--- BEGIN INGESTED CORPUS ({len(articles)} ARTICLES) ---"
     ]
