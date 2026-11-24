@@ -24,6 +24,7 @@ sys.path.insert(
 )
 
 from llm import analyze_news
+from market_calendar import market_today
 from models import DailyPrediction, NewsArticle
 
 # ========== Fixtures ==========
@@ -39,7 +40,7 @@ def sample_article():
         summary="Example summary",
         content="Example article content.",
         url="https://example.com/article",
-        published_at=datetime.combine(date.today(), datetime.min.time()),
+        published_at=datetime.combine(market_today(), datetime.min.time()),
         hash="test-hash-001",
     )
 
@@ -54,7 +55,7 @@ def hallucinated_day_prediction():
     return DailyPrediction(
         id=uuid.uuid4(),
         horizon="DAY",
-        prediction_for=date.today() + timedelta(days=1), # LLM hallucination
+        prediction_for=market_today() + timedelta(days=1), # LLM hallucination
         bullish_probability=0.7,
         bearish_probability=0.3,
         confidence=0.8,
@@ -79,7 +80,7 @@ def test_day_prediction_for_is_set_by_application(
 
     The LLM is deliberately given a prediction_for date one day in the
     future to simulate hallucination. The application layer must
-    ovewrite that value with date.today().
+    ovewrite that value with market_today().
     """
     mock_generate_prompt.return_value = "mock analysis prompt"
 
@@ -95,10 +96,10 @@ def test_day_prediction_for_is_set_by_application(
 
     assert prediction is not None
     assert prediction.horizon == "DAY"
-    # assert prediction.prediction_for == date.today()
+    # assert prediction.prediction_for == market_today()
 
     # Confirm that the hallucinated date was actually replaced.
-    assert prediction.prediction_for != date.today() + timedelta(days=1)
+    assert prediction.prediction_for != market_today() + timedelta(days=1)
 
 
 @patch("llm.generate_analysis_prompt")
@@ -116,7 +117,7 @@ def test_day_prediction_for_is_overridden_even_when_llm_returns_today(
 
     llm_prediction = DailyPrediction(
         horizon="DAY",
-        prediction_for=date.today(),
+        prediction_for=market_today(),
         bullish_probability=0.6,
         bearish_probability=0.4,
         confidence=0.8,
@@ -137,7 +138,7 @@ def test_day_prediction_for_is_overridden_even_when_llm_returns_today(
     prediction = analyze_news([sample_article])
 
     assert prediction is not None
-    assert prediction.prediction_for == date.today()
+    assert prediction.prediction_for == market_today()
 
 @patch("llm.generate_analysis_prompt")
 @patch("llm._get_gemini_client")
@@ -191,7 +192,7 @@ def test_fallback_text_response_is_parsed(
 
     llm_prediction = {
         "horizon": "DAY",
-        "prediction_for": date.today().strftime('%Y-%m-%d'),
+        "prediction_for": market_today().strftime('%Y-%m-%d'),
         "bullish_probability": 0.6,
         "bearish_probability": 0.4,
         "confidence": 0.8,
@@ -214,4 +215,4 @@ def test_fallback_text_response_is_parsed(
     prediction = analyze_news([sample_article])
 
     assert prediction is not None
-    assert prediction.prediction_for == date.today()
+    assert prediction.prediction_for == market_today()
