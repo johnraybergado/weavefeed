@@ -5,6 +5,7 @@ Configuration values are loaded from environment variables (.env)
 and exposed through a single immutable Settings object.
 """
 from pathlib import Path
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -48,6 +49,16 @@ class Settings(BaseSettings):
     google_api_key: str = ""
 
     # ------------------------------------------------------------------
+    # Scheduler (times are relative to the RTH open, 09:30 America/New_York)
+    # ------------------------------------------------------------------
+
+    # Prediction workflow runs at RTH open + delay. If the scheduler starts
+    # late it still runs, up to `delay + grace` minutes after the open.
+    # README contract: predictions are made within the first 30 minutes.
+    scheduler_delay_minutes: int = Field(default=15, ge=0, le=30)
+    scheduler_grace_minutes: int = Field(default=15, ge=0, le=30)
+
+    # ------------------------------------------------------------------
     # Pydantic settings
     # ------------------------------------------------------------------
 
@@ -57,6 +68,15 @@ class Settings(BaseSettings):
         case_sensitive=False,
         extra="ignore",
     )
+
+    @model_validator(mode="after")
+    def _check_scheduler_window(self) -> "Settings":
+        if self.scheduler_delay_minutes + self.scheduler_grace_minutes > 30:
+            raise ValueError(
+                "scheduler_delay_minutes + scheduler_grace_minutes must be <= 30 "
+                "(predictions must be generated within 30 minutes of the RTH open)"
+            )
+        return self
 
 
 settings = Settings()

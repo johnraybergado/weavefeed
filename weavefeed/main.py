@@ -46,6 +46,10 @@ def main():
 
     prediction = analyze_news(recent_articles)
 
+    if prediction is None:
+        logger.error("No prediction generated; nothing persisted")
+        return
+
     persist_analysis_run(
         prediction=prediction,
         articles=recent_articles

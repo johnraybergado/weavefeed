@@ -37,6 +37,8 @@ The system is intentionally modular:
 | config.py | Centralized configuration management |
 | main.py | Prediction workflow script |
 | evaluate.py | Evaluation workflow script |
+| scheduler.py | Runs the prediction workflow on trading days, 15–30 minutes after the RTH open |
+| market_calendar.py | New York market clock, NYSE holidays and trading-day logic |
 
 ---
 
@@ -99,6 +101,23 @@ Stores prediciton performance metrics.
   - Store evaluation
 
 This creates a continuous learning and measurement loop.
+
+## Running the Scheduler
+
+The scheduler runs the prediction workflow (`main.py`) once per US trading day, **15–30 minutes after the RTH open** (09:30 America/New_York, DST-aware), independent of the host machine's timezone.
+
+```
+cd weavefeed
+python scheduler.py               # run forever
+python scheduler.py --print-next  # show the next run window and exit
+```
+
+- Fires at open + `SCHEDULER_DELAY_MINUTES` (default 15 → 09:45 ET).
+- If started or resumed inside the window (up to open + delay + `SCHEDULER_GRACE_MINUTES`, default 30 → 10:00 ET) it runs immediately; if the window has already closed that day is skipped, since a stale "start of day" prediction is not comparable.
+- Skips weekends and NYSE full-day holidays (`market_calendar.py`). Ad-hoc closures are not modelled.
+- A failed run is logged and the scheduler keeps going. There is no retry within the window yet.
+- State is in-memory: restarting inside the window after a successful run will run the workflow again.
+- DAY predictions are dated with the New York market date.
 
 ---
 
@@ -237,7 +256,7 @@ This should improve reproducibility, explainability, and evaluation rigor.
 
 # Planned Version 2
 
-* [ ] Implement scheduler to run prediction workflow 15–30 minutes after RTH open
+* [X] Implement scheduler to run prediction workflow 15–30 minutes after RTH open
 * [ ] Implement separate scheduler for delayed evaluation after market close
 * [ ] Add weekly and monthly horizon directional hypothesis estimates
 * [ ] Transition daily evaluation target from full-session futures movement to RTH open -> RTH close movement

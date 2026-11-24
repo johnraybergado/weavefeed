@@ -1,12 +1,12 @@
 """Generate macroeconomic analysis via an LLM API"""
 import logging
 from typing import Optional
-from datetime import date
 from google import genai
 from google.genai import types
 from google.genai.errors import APIError
 
 from config import settings
+from market_calendar import market_today
 from models import NewsArticle, DailyPrediction
 from prompts import SYSTEM_PROMPT, generate_analysis_prompt
 
@@ -60,10 +60,11 @@ def analyze_news(articles: list[NewsArticle]) -> Optional[DailyPrediction]:
         else:
             raise ValueError("Gemini API generated an empty response payload.")
 
-        # enforce daily horizon prediction is the same date 
-        # as when the prediciton workflow is ran
+        # enforce daily horizon prediction is the same date
+        # as when the prediction workflow is ran (New York market date,
+        # independent of the host machine's timezone)
         if prediction.horizon == "DAY":
-            prediction.prediction_for = date.today()
+            prediction.prediction_for = market_today()
 
         return prediction
 
